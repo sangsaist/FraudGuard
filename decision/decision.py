@@ -29,7 +29,14 @@ SATURATION_MESSAGE_THRESHOLD = 3
 
 def _contains_scam_signals(text: str) -> bool:
     lowered = text.lower()
-    return any(keyword in lowered for keyword in SCAM_KEYWORDS)
+
+    strong_keywords = {"otp", "verify", "blocked", "click", "link"}
+    weak_keywords = {"bank", "account", "payment"}
+
+    strong_hits = sum(1 for kw in strong_keywords if kw in lowered)
+    weak_hits = sum(1 for kw in weak_keywords if kw in lowered)
+
+    return strong_hits >= 1 or weak_hits >= 2
 
 
 def _intelligence_present(extracted) -> bool:
@@ -49,9 +56,6 @@ def decide(input_data: DecisionInput) -> DecisionOutput:
     scam_signals = _contains_scam_signals(message_text)
     intelligence_found = _intelligence_present(input_data.extractedIntelligence)
 
-    # IMPORTANT:
-    # - scamDetected = confirmed scam ONLY (intelligence present)
-    # - scam_signals alone = suspected scam
     scam_detected = intelligence_found
 
     continue_conversation = False
@@ -61,20 +65,17 @@ def decide(input_data: DecisionInput) -> DecisionOutput:
     scam_type = None
     agent_notes = ""
 
-    # ---- Benign message ----
     if not scam_signals and not intelligence_found:
         should_reply = False
         continue_conversation = False
         agent_notes = "No scam indicators detected."
 
-    # ---- SUSPECTED_SCAM ----
     elif scam_signals and not intelligence_found:
         should_reply = True
         continue_conversation = True
         response_style = ResponseStyle.CONFUSED
         agent_notes = "Suspicious patterns detected in message."
 
-    # ---- CONFIRMED SCAM / ENGAGING ----
     elif intelligence_found:
         scam_type = "financial_scam"
         should_reply = True
@@ -82,7 +83,6 @@ def decide(input_data: DecisionInput) -> DecisionOutput:
         response_style = ResponseStyle.HESITANT
         agent_notes = "Scam confirmed via extracted intelligence."
 
-        # ---- INTELLIGENCE_SATURATED ----
         if input_data.sessionStats.totalMessages > SATURATION_MESSAGE_THRESHOLD:
             should_reply = False
             continue_conversation = False
