@@ -1,110 +1,120 @@
-🛡️ FraudGuard
+<div align="center">
 
-Agentic Honeypot System for Scam Detection & Intelligence Extraction
+# 🛡️ FraudGuard
+### Agentic Honeypot System for Scam Detection & Intelligence Extraction
 
-FraudGuard is an agent-driven honeypot system that actively engages scam conversations, detects malicious intent, extracts intelligence, and reports verified scam data through a controlled callback mechanism.
+![Python](https://img.shields.io/badge/Python-100%25-blue?style=for-the-badge&logo=python&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-In%20Progress-orange?style=for-the-badge)
 
-The system is designed for predictability, safety, and control, even when AI components are involved.
+<p align="center">
+  <b>FraudGuard</b> is an agent-driven honeypot system that actively engages scam conversations, detects malicious intent, extracts intelligence, and reports verified scam data through a controlled callback mechanism.
+  <br><br>
+  <i>Designed for predictability, safety, and control, even when AI components are involved.</i>
+</p>
 
-🚨 What Problem FraudGuard Solves
+</div>
 
-Scam communications today are:
+---
 
-adaptive and conversational
+## 🚨 What Problem FraudGuard Solves
 
-resistant to static rules
+Scam communications today are **adaptive, conversational, and resistant to static rules**, often designed to extract sensitive information quickly.
 
-designed to extract sensitive information quickly
+**FraudGuard flips the problem by:**
+* **Engaging** scammers instead of blocking them.
+* **Collecting** intelligence without alerting the attacker.
+* **Terminating** conversations safely.
+* **Reporting** only verified results.
 
-FraudGuard flips the problem by:
+---
 
-engaging scammers instead of blocking them
+## 🧠 How FraudGuard Works
 
-collecting intelligence without alerting the attacker
+The system follows a strict, linear flow to ensure safety and control.
 
-terminating conversations safely
+```mermaid
+graph TD
+    A[Incoming Message] --> B[Decision Engine]
+    B --> C[Agentic Engagement]
+    C --> D[Intelligence Extraction]
+    D --> E[Safe Termination]
+    E --> F[Verified Callback]
+    
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style F fill:#9f9,stroke:#333,stroke-width:2px
 
-reporting only verified results
+## 🧩 Core Capabilities
 
-🧠 How FraudGuard Works (In One View)
-Incoming Message
-      ↓
-  Decision Engine
-      ↓
-  Agentic Engagement
-      ↓
-Intelligence Extraction
-      ↓
- Safe Termination
-      ↓
- Verified Callback
+| Feature | Description |
+| --- | --- |
+| **🧠 Intent Detection** | Accurately identifies scam intent versus normal conversation. |
+| **🤖 Agent Responses** | Generates human-like, context-aware replies to keep scammers engaged. |
+| **🔍 Passive Extraction** | Silently captures intelligence (UPI, links, phone numbers). |
+| **🔁 State-Driven Flow** | Strictly manages the conversation lifecycle. |
+| **📤 Verified Reporting** | Triggers a single, verified callback upon conclusion. |
+
+---
+
+## 🏗️ Project Structure
+
+Each module has **one responsibility** and operates independently.
+
+```bash
+FraudGuard/
+├── contracts/      # Interface definitions
+├── receiver/       # Input validation & normalization
+├── decision/       # Scam detection & state transitions
+├── aiagent/        # Controlled conversational agent
+├── extraction/     # Intelligence extraction
+├── callback/       # Final reporting
+└── orchestrator/   # System control flow
+
+```
+
+---
+
+## 🔁 Execution Model
+
+To ensure safety, FraudGuard enforces a strict execution model:
+
+1. Every session exists in **one runtime state**.
+2. **Only one component** controls flow at a time.
+3. **No module** acts independently.
+4. **No uncontrolled loops**.
+
+> **Why?** This prevents false positives, infinite engagement loops, and accidental exposure.
+
+---
+
+## 🧪 Current Status
+
+* [x] **System design completed**
+* [x] **Interfaces defined**
+* [ ] **Implementation in progress**
+
+---
+
+## 🔒 Design Guarantee
+
+FraudGuard is built on a "Safety First" architecture:
+
+> 1. **AI never controls the system.**
+> 2. **Decisions are explicit.**
+> 3. **Exits are safe.**
+> 4. **Reporting happens exactly once.**
+> 
+> 
+
+<div align="center">
 
 
-Each step is controlled, state-aware, and non-aggressive.
-
-🧩 Core Capabilities
-
-🧠 Scam intent detection
-
-🤖 Human-like agent responses
-
-🔍 Passive intelligence extraction (UPI, links, numbers)
-
-🔁 State-driven conversation flow
-
-📤 Single, verified callback reporting
-
-🏗️ Project Structure
-contracts/      # Interface definitions
-receiver/       # Input validation & normalization
-decision/       # Scam detection & state transitions
-aiagent/        # Controlled conversational agent
-extraction/     # Intelligence extraction
-callback/       # Final reporting
-orchestrator/   # System control flow
 
 
-Each module has one responsibility and operates independently.
 
-🔁 Execution Model
+<h3><i>"FraudGuard does not chase scammers. It controls them."</i></h3>
+</div>
 
-Every session exists in one runtime state
+```
 
-Only one component controls flow
-
-No module acts independently
-
-No uncontrolled loops
-
-This prevents:
-
-false positives
-
-infinite engagement
-
-accidental exposure
-
-🧪 Current Status
-
-✅ System design completed
-
-✅ Interfaces defined
-
-🔄 Implementation in progress
-
-🔒 Design Guarantee
-
-FraudGuard is built to ensure that:
-
-AI never controls the system
-
-decisions are explicit
-
-exits are safe
-
-reporting happens exactly once
-
-Final Note
-
-FraudGuard does not chase scammers.
-It controls them
+```
