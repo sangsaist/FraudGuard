@@ -10,9 +10,12 @@ from contracts.extraction_contract import (
 )
 
 
-# ---------- Regex Patterns (Deterministic) ----------
+# ---------- Regex Pattern----------
 
-UPI_REGEX = re.compile(r"\b[a-zA-Z0-9.\-_]{2,}@[a-zA-Z]{2,}\b")
+UPI_REGEX = re.compile(
+    r"\b[a-zA-Z0-9.\-_]{2,}@[a-zA-Z]{2,}\b",
+    re.IGNORECASE,
+)
 PHONE_REGEX = re.compile(r"\b(?:\+91[-\s]?|0)?[6-9]\d{9}\b")
 URL_REGEX = re.compile(r"https?://[^\s]+")
 
