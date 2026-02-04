@@ -44,6 +44,12 @@ graph TD
     style A fill:#f9f,stroke:#333,stroke-width:2px
     style F fill:#9f9,stroke:#333,stroke-width:2px
 
+```
+
+*Each step is controlled, state-aware, and non-aggressive.*
+
+---
+
 ## 🧩 Core Capabilities
 
 | Feature | Description |
