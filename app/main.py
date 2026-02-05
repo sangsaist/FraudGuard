@@ -28,3 +28,7 @@ async def honeypot(request: Request):
         raise HTTPException(status_code=400, detail=str(e))
     except Exception:
         raise HTTPException(status_code=500, detail="Internal server error")
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+

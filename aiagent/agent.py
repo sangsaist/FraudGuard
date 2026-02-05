@@ -4,7 +4,7 @@ from groq import Groq
 
 from contracts.agent_contract import AgentInput, AgentOutput
 from contracts.common_types import ResponseStyle
-from config import GROQ_API_KEY
+from app.config import GROQ_API_KEY
 
 
 def _build_system_prompt(style: ResponseStyle, language: str, locale: str) -> str:
