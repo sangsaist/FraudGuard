@@ -1,25 +1,25 @@
-# callback/callback.py
-
+import os
 import requests
 from typing import Set
-
 from contracts.callback_contract import CallbackPayload
 
+ENV = os.getenv("ENV", "local")
 
-GUVI_CALLBACK_URL = "http://127.0.0.1:9000/api/updateHoneyPotFinalResult"
+CALLBACK_URLS = {
+    "local": "http://127.0.0.1:9000/api/updateHoneyPotFinalResult",
+    "guvi": "https://hackathon.guvi.in/api/updateHoneyPotFinalResult",
+}
+
+GUVI_CALLBACK_URL = CALLBACK_URLS.get(ENV, CALLBACK_URLS["local"])
 
 REQUEST_TIMEOUT_SECONDS = 5
-
-# In-memory idempotency guard (session-scoped, process lifetime)
 _SENT_SESSIONS: Set[str] = set()
 
 
 def send_callback(payload: CallbackPayload) -> bool:
-    # Do not send callback for non-scam sessions
-    if payload.scamDetected is False:
+    if not payload.scamDetected:
         return False
 
-    # Idempotency: ensure callback is sent exactly once per session
     if payload.sessionId in _SENT_SESSIONS:
         return False
 
@@ -32,10 +32,13 @@ def send_callback(payload: CallbackPayload) -> bool:
         )
 
         if response.status_code != 200:
+            print(f"[CALLBACK ERROR] {response.status_code}")
             return False
 
         _SENT_SESSIONS.add(payload.sessionId)
+        print(f"[CALLBACK SUCCESS] ENV={ENV}")
         return True
 
-    except requests.RequestException:
+    except requests.RequestException as e:
+        print(f"[CALLBACK EXCEPTION] {e}")
         return False
