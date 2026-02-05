@@ -1,12 +1,10 @@
-# aiagent/agent.py
-
-import os
 from typing import List
 
 from groq import Groq
 
 from contracts.agent_contract import AgentInput, AgentOutput
 from contracts.common_types import ResponseStyle
+from config import GROQ_API_KEY
 
 
 def _build_system_prompt(style: ResponseStyle, language: str, locale: str) -> str:
@@ -70,14 +68,16 @@ def _build_conversation(history: List, current_message) -> List[dict]:
 
 
 def generate_reply(agent_input: AgentInput) -> AgentOutput:
-    api_key = os.getenv("GROQ_API_KEY")
-    if not api_key:
+    # ======================
+    # API Key from config.py
+    # ======================
+    if not GROQ_API_KEY:
         return AgentOutput(
             status="fail",
             reply="",
         )
 
-    client = Groq(api_key=api_key)
+    client = Groq(api_key=GROQ_API_KEY)
 
     system_prompt = _build_system_prompt(
         agent_input.responseStyle,
@@ -94,7 +94,7 @@ def generate_reply(agent_input: AgentInput) -> AgentOutput:
 
     try:
         completion = client.chat.completions.create(
-            model="llama3-8b-8192",
+            model="llama-3.1-8b-instant",
             messages=messages,
             temperature=0.6,
             max_tokens=120,

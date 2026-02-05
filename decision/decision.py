@@ -1,5 +1,4 @@
 from typing import List
-
 from contracts.decision_contract import (
     DecisionInput,
     DecisionOutput,
@@ -8,6 +7,9 @@ from contracts.decision_contract import (
 from contracts.common_types import ResponseStyle
 
 
+# ======================
+# Scam signal keywords
+# ======================
 SCAM_KEYWORDS: List[str] = [
     "urgent",
     "verify",
@@ -23,79 +25,142 @@ SCAM_KEYWORDS: List[str] = [
     "bank",
 ]
 
+# Number of turns with no new intelligence before saturation
+SATURATION_LIMIT = 3
 
-SATURATION_MESSAGE_THRESHOLD = 3
 
-
+# ======================
+# Helpers
+# ======================
 def _contains_scam_signals(text: str) -> bool:
-    lowered = text.lower()
-
-    strong_keywords = {"otp", "verify", "blocked", "click", "link"}
-    weak_keywords = {"bank", "account", "payment"}
-
-    strong_hits = sum(1 for kw in strong_keywords if kw in lowered)
-    weak_hits = sum(1 for kw in weak_keywords if kw in lowered)
-
-    return strong_hits >= 1 or weak_hits >= 2
+    text = text.lower()
+    return any(keyword in text for keyword in SCAM_KEYWORDS)
 
 
-def _intelligence_present(extracted) -> bool:
-    return any(
-        [
-            extracted.bankAccounts,
-            extracted.upiIds,
-            extracted.phishingLinks,
-            extracted.phoneNumbers,
-        ]
-    )
+def _intelligence_present(intel) -> bool:
+    return any([
+        intel.bankAccounts,
+        intel.upiIds,
+        intel.phishingLinks,
+        intel.phoneNumbers,
+    ])
 
 
+# ======================
+# Decision Logic
+# ======================
 def decide(input_data: DecisionInput) -> DecisionOutput:
-    message_text = input_data.currentMessage.text
+    state = input_data.currentState
+    text = input_data.currentMessage.text
 
-    scam_signals = _contains_scam_signals(message_text)
+    scam_signals = _contains_scam_signals(text)
     intelligence_found = _intelligence_present(input_data.extractedIntelligence)
 
-    scam_detected = intelligence_found
-
-    continue_conversation = False
-    trigger_final_callback = False
+    # ----------------------
+    # Defaults (safe)
+    # ----------------------
+    next_state = state
     should_reply = False
     response_style = ResponseStyle.NEUTRAL
+    continue_conversation = False
+    trigger_callback = False
+    scam_detected = False
     scam_type = None
     agent_notes = ""
 
-    if not scam_signals and not intelligence_found:
-        should_reply = False
-        continue_conversation = False
-        agent_notes = "No scam indicators detected."
+    # ======================
+    # NEW_MESSAGE
+    # ======================
+    if state == "NEW_MESSAGE":
+        if scam_signals:
+            next_state = "SUSPECTED_SCAM"
+            should_reply = True
+            continue_conversation = True
+            response_style = ResponseStyle.CONFUSED
+            agent_notes = "Initial scam indicators detected."
+        else:
+            next_state = "SOFT_EXIT"
+            agent_notes = "No scam indicators."
 
-    elif scam_signals and not intelligence_found:
-        should_reply = True
-        continue_conversation = True
-        response_style = ResponseStyle.CONFUSED
-        agent_notes = "Suspicious patterns detected in message."
+    # ======================
+    # SUSPECTED_SCAM
+    # ======================
+    elif state == "SUSPECTED_SCAM":
+        if intelligence_found:
+            next_state = "ENGAGING"
+            should_reply = True
+            continue_conversation = True
+            response_style = ResponseStyle.HESITANT
+            agent_notes = "Scam confirmed, entering engagement."
+        elif scam_signals:
+            next_state = "SUSPECTED_SCAM"
+            should_reply = True
+            continue_conversation = True
+            response_style = ResponseStyle.CONFUSED
+            agent_notes = "Suspicion reinforced."
+        else:
+            next_state = "SOFT_EXIT"
+            agent_notes = "Suspicion dropped."
 
-    elif intelligence_found:
-        scam_type = "financial_scam"
-        should_reply = True
-        continue_conversation = True
-        response_style = ResponseStyle.HESITANT
-        agent_notes = "Scam confirmed via extracted intelligence."
-
-        if input_data.sessionStats.totalMessages > SATURATION_MESSAGE_THRESHOLD:
-            should_reply = False
-            continue_conversation = False
-            trigger_final_callback = True
-            response_style = ResponseStyle.NEUTRAL
+    # ======================
+    # ENGAGING
+    # ======================
+    elif state == "ENGAGING":
+        if input_data.sessionStats.noNewIntelligenceTurns >= SATURATION_LIMIT:
+            next_state = "INTELLIGENCE_SATURATED"
             agent_notes = "Intelligence saturation reached."
+        else:
+            next_state = "ENGAGING"
+            should_reply = True
+            continue_conversation = True
+            response_style = ResponseStyle.HESITANT
+            agent_notes = "Actively engaging to extract intelligence."
+
+    # ======================
+    # INTELLIGENCE_SATURATED
+    # ======================
+    elif state == "INTELLIGENCE_SATURATED":
+        next_state = "SOFT_EXIT"
+        should_reply = True
+        response_style = ResponseStyle.NEUTRAL
+        agent_notes = "Neutral disengagement message sent."
+
+    # ======================
+    # SOFT_EXIT
+    # ======================
+    elif state == "SOFT_EXIT":
+        if intelligence_found:
+            next_state = "CALLBACK_READY"
+            scam_detected = True
+            scam_type = "financial_scam"
+            trigger_callback = True
+            agent_notes = "Conversation complete, ready for callback."
+        else:
+            next_state = "CLOSED"
+            agent_notes = "Non-scam conversation closed."
+
+    # ======================
+    # CALLBACK_READY
+    # ======================
+    elif state == "CALLBACK_READY":
+        next_state = "CLOSED"
+        scam_detected = True
+        trigger_callback = True
+        agent_notes = "Callback finalized."
+
+    # ======================
+    # CLOSED
+    # ======================
+    elif state == "CLOSED":
+        next_state = "CLOSED"
 
     return DecisionOutput(
         scamDetected=scam_detected,
         scamType=scam_type,
         continueConversation=continue_conversation,
-        triggerFinalCallback=trigger_final_callback,
+        triggerFinalCallback=trigger_callback,
         agentNotes=agent_notes,
+        nextState=next_state,
         nextAgentAction=NextAgentAction(
             shouldReply=should_reply,
             responseStyle=response_style,

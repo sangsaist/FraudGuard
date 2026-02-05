@@ -6,7 +6,8 @@ from typing import Set
 from contracts.callback_contract import CallbackPayload
 
 
-GUVI_CALLBACK_URL = "https://hackathon.guvi.in/api/updateHoneyPotFinalResult"
+GUVI_CALLBACK_URL = "http://127.0.0.1:9000/api/updateHoneyPotFinalResult"
+
 REQUEST_TIMEOUT_SECONDS = 5
 
 # In-memory idempotency guard (session-scoped, process lifetime)
